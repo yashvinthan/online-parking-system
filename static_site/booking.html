@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Book Slot - Online Parking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/styles.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">Online Parking</a>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="booking.html">Booking</a></li>
+          <li class="nav-item"><a class="btn btn-outline-primary ms-2" href="login.html">Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <main class="container py-5">
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Availability</h5>
+              <small class="text-muted">Demo grid (sample)</small>
+            </div>
+            <hr>
+            <div class="row row-cols-3 row-cols-md-5 g-3">
+              <!-- Sample slots -->
+              <div class="col"><div class="slot available">A1</div></div>
+              <div class="col"><div class="slot booked">A2</div></div>
+              <div class="col"><div class="slot available">A3</div></div>
+              <div class="col"><div class="slot booked">A4</div></div>
+              <div class="col"><div class="slot available">A5</div></div>
+              <div class="col"><div class="slot available">B1</div></div>
+              <div class="col"><div class="slot booked">B2</div></div>
+              <div class="col"><div class="slot available">B3</div></div>
+              <div class="col"><div class="slot available">B4</div></div>
+              <div class="col"><div class="slot booked">B5</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="card p-3">
+            <h5>Book a slot</h5>
+            <hr>
+            <form>
+              <div class="mb-3">
+                <label class="form-label">Select Slot</label>
+                <select class="form-select">
+                  <option>A1</option>
+                  <option>A2</option>
+                  <option>A3</option>
+                </select>
+              </div>
+              <div class="row g-3">
+                <div class="col-6">
+                  <label class="form-label">Date</label>
+                  <input type="date" class="form-control">
+                </div>
+                <div class="col-3">
+                  <label class="form-label">Start</label>
+                  <input type="time" class="form-control" value="09:00">
+                </div>
+                <div class="col-3">
+                  <label class="form-label">End</label>
+                  <input type="time" class="form-control" value="11:00">
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small">Est. Cost</div>
+                <div class="fw-bold">₹ 100.00</div>
+              </div>
+              <button type="button" class="btn btn-primary w-100 mt-3" onclick="location.href='payment.html'">Proceed to Payment</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer py-4">
+      <div class="container text-center text-muted small">© Online Parking System</div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+  </html>
+

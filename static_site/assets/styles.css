@@ -1,0 +1,33 @@
+/* Simple modern styling for the static mockups */
+:root {
+  --brand: #0d6efd;
+}
+
+body { background: #f7f8fb; }
+.navbar-brand { font-weight: 600; }
+.hero {
+  padding: 72px 0;
+}
+.hero .lead { color: #5c6670; }
+.card {
+  border: 0;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+.feature-icon {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(13,110,253,.1);
+  color: var(--brand);
+}
+.slot {
+  height: 72px; border-radius: 10px; display:flex; align-items:center; justify-content:center;
+  font-weight: 600;
+}
+.slot.available { background: #d1e7dd; color: #0a3622; }
+.slot.booked { background: #fff3cd; color: #664d03; }
+.qr-placeholder {
+  width: 180px; height: 180px; background: repeating-linear-gradient(45deg,#eee,#eee 10px,#ddd 10px,#ddd 20px);
+  border-radius: 8px;
+}
+.footer { background: #fff; border-top: 1px solid #eef0f3; }

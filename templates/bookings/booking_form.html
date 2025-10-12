@@ -1,0 +1,135 @@
+﻿{% extends 'base.html' %}
+{% block title %}Book a Slot{% endblock %}
+{% block content %}
+<section class="viewport-pad">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+      <div>
+        <span class="badge-soft">Smart booking</span>
+        <h2 class="fw-semibold mt-2">Reserve your parking in under a minute</h2>
+        <p class="muted mb-0">Filter by location, choose your slot, and pay using your saved preference.</p>
+      </div>
+      <a href="/bookings/dashboard/" class="btn btn-ghost">View dashboard</a>
+    </div>
+
+    <form method="post" id="bookingForm" data-default-rate="{{ default_rate|floatformat:"2" }}" novalidate>
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="filter-bar mb-4">
+        <div class="flex-grow-1">
+          <label class="form-label small mb-1" for="locationFilter">Location</label>
+          <select id="locationFilter" class="form-select">
+            <option value="all">All locations</option>
+            {% for location in locations %}
+              <option value="{{ location }}">{{ location }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="form-label small mb-1" for="vehicleFilter">Vehicle type</label>
+          <div class="d-flex flex-wrap gap-2" id="vehicleFilter" data-selected-vehicle="{{ selected_vehicle }}">
+            <span class="chip{% if selected_vehicle == 'all' %} is-active{% endif %}" data-vehicle="all" role="button" tabindex="0" aria-pressed="{% if selected_vehicle == 'all' %}true{% else %}false{% endif %}">All vehicles</span>
+            {% for option in vehicle_choices %}
+              <span class="chip{% if option.value == selected_vehicle %} is-active{% endif %}" data-vehicle="{{ option.value }}" role="button" tabindex="0" aria-pressed="{% if option.value == selected_vehicle %}true{% else %}false{% endif %}">{{ option.label }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <label class="form-label small mb-1" for="id_date">Date</label>
+          {{ form.date }}
+        </div>
+        <div class="d-flex align-items-end gap-2">
+          <div>
+            <label class="form-label small mb-1" for="id_start_time">Start</label>
+            {{ form.start_time }}
+          </div>
+          <div>
+            <label class="form-label small mb-1" for="id_end_time">End</label>
+            {{ form.end_time }}
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-8 order-2 order-lg-1">
+          <div class="slot-grid" data-slot-grid>
+            {% for tile in slot_tiles %}
+              <div
+                class="slot-tile{% if selected_slot_id and tile.id == selected_slot_id %} is-selected{% endif %}"
+                data-slot-id="{{ tile.id }}"
+                data-slot-label="{{ tile.code }}"
+                data-location="{{ tile.location }}"
+                data-vehicle="{{ tile.vehicle }}"
+                data-vehicle-label="{{ tile.vehicle_label }}"
+                data-rate="{{ tile.rate|floatformat:"2" }}"
+                data-status="{% if tile.available %}available{% else %}booked{% endif %}"
+                data-label="{% if tile.available %}Available{% else %}Booked{% endif %}"
+                role="button"
+                tabindex="0"
+                aria-pressed="{% if selected_slot_id and tile.id == selected_slot_id %}true{% else %}false{% endif %}"
+                aria-disabled="{% if tile.available %}false{% else %}true{% endif %}"
+                aria-label="Slot {{ tile.code }} at {{ tile.location }}"
+              >
+                <div class="slot-code">{{ tile.code }}</div>
+                <div class="muted small">{{ tile.vehicle_label }} &middot; &#8377;{{ tile.rate|floatformat:"0" }}/hr</div>
+                <div class="slot-location mt-1">{{ tile.location }}</div>
+                <div class="muted small mt-2">{% if tile.available %}Tap to select{% else %}Currently booked{% endif %}</div>
+                {% if tile.available %}
+                  <div class="slot-action"><i class="bi bi-cursor"></i> Select slot</div>
+                {% endif %}
+              </div>
+            {% empty %}
+              <div class="card">
+                <p class="mb-0 muted">No parking slots are configured yet. Ask an administrator to add slots.</p>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-lg-4 order-1 order-lg-2">
+          <div class="summary-drawer" data-summary>
+            <div>
+              <div class="muted small">Selected slot</div>
+              <h5 class="mt-1" data-summary-slot>&mdash;</h5>
+              <div class="muted small" data-summary-time>&mdash;</div>
+              <div class="muted small" data-summary-vehicle>Select any available slot</div>
+            </div>
+            <div>
+              <div class="muted small">Estimated total</div>
+              <div class="summary-total" data-summary-amount>&mdash;</div>
+              <div class="small text-muted">Base hourly rate &#8377;<span data-summary-base>{{ default_rate|floatformat:"0" }}</span></div>
+            </div>
+            <div>
+              <div class="muted small mb-2">Payment method</div>
+              <div class="payment-methods" id="paymentMethodList">
+                {% for value, label in request.user.PAYMENT_CHOICES %}
+                  {% if value == preferred_payment_method %}
+                    <div class="payment-option is-selected" data-method="{{ value }}" role="button" tabindex="0" aria-pressed="true">
+                      {% if value == 'gpay' %}<i class="bi bi-google"></i>{% elif value == 'paytm' %}<i class="bi bi-wallet2"></i>{% else %}<i class="bi bi-credit-card"></i>{% endif %}
+                      {{ label }}
+                    </div>
+                  {% else %}
+                    <div class="payment-option" data-method="{{ value }}" role="button" tabindex="0" aria-pressed="false">
+                      {% if value == 'gpay' %}<i class="bi bi-google"></i>{% elif value == 'paytm' %}<i class="bi bi-wallet2"></i>{% else %}<i class="bi bi-credit-card"></i>{% endif %}
+                      {{ label }}
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            <input type="hidden" name="payment_method" value="{{ preferred_payment_method }}" id="paymentMethodInput">
+            <div class="d-grid gap-2 mt-auto">
+              <button type="submit" class="btn btn-primary btn-pill">Proceed to payment</button>
+              <button type="button" class="btn btn-ghost btn-pill" onclick="window.history.back()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="visually-hidden">
+        {{ form.slot }}
+        <input type="hidden" data-amount-input>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

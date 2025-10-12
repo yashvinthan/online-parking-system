@@ -1,0 +1,151 @@
+﻿{% extends 'base.html' %}
+{% block title %}Admin Insights{% endblock %}
+{% block content %}
+<section class="viewport-pad">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+      <div>
+        <span class="badge-soft">Operations overview</span>
+        <h2 class="fw-semibold mt-2">Parking performance dashboard</h2>
+        <p class="muted mb-0">Monitor occupancy, revenue trends, and vehicle mix to fine-tune pricing and capacity.</p>
+      </div>
+      <a href="/bookings/admin/reports/daily/" class="btn btn-ghost">Daily revenue report</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="muted small">Total slots</div>
+          <h3 class="mt-2">{{ slot_count }}</h3>
+          <div class="small text-muted">Configured across all locations</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="muted small">Active bookings today</div>
+          <h3 class="mt-2">{{ active_today }}</h3>
+          <div class="small text-muted">Paid reservations for {% now "d M, Y" %}</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="muted small">Lifetime revenue</div>
+          <h3 class="mt-2">₹ {{ revenue_total|floatformat:2 }}</h3>
+          <div class="small text-muted">All successful transactions</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card h-100 p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Revenue (last 7 days)</h5>
+            <span class="small muted">Auto-updated daily</span>
+          </div>
+          <canvas id="revenueChart" height="220"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card h-100 p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Revenue by vehicle type</h5>
+            <span class="small muted">Paid bookings</span>
+          </div>
+          <canvas id="vehicleChart" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{{ revenue_labels|json_script:'revenue-labels' }}
+{{ revenue_data|json_script:'revenue-data' }}
+{{ vehicle_labels|json_script:'vehicle-labels' }}
+{{ vehicle_data|json_script:'vehicle-data' }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const revenueLabels = JSON.parse(document.getElementById('revenue-labels').textContent || '[]');
+    const revenueData = JSON.parse(document.getElementById('revenue-data').textContent || '[]');
+    const vehicleLabels = JSON.parse(document.getElementById('vehicle-labels').textContent || '[]');
+    const vehicleData = JSON.parse(document.getElementById('vehicle-data').textContent || '[]');
+
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+      new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+          labels: revenueLabels,
+          datasets: [{
+            data: revenueData,
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2,
+            borderColor: '#00b8a9',
+            backgroundColor: 'rgba(0, 184, 169, 0.18)',
+            pointRadius: 4,
+            pointBackgroundColor: '#0f1c2e',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ₹ ,
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: (value) => ₹ ,
+              },
+              grid: { color: 'rgba(15, 28, 46, 0.08)' }
+            },
+            x: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    const vehicleCtx = document.getElementById('vehicleChart');
+    if (vehicleCtx) {
+      new Chart(vehicleCtx, {
+        type: 'doughnut',
+        data: {
+          labels: vehicleLabels,
+          datasets: [{
+            data: vehicleData,
+            backgroundColor: ['#00b8a9', '#0f1c2e', '#13d6cb', '#ffc857'],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 12 }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ${ctx.label}: ₹ ,
+              }
+            }
+          },
+          cutout: '60%'
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

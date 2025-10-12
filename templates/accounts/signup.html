@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<section class="viewport-pad">
+  <div class="container">
+    <div class="auth-wrapper">
+      <div class="card feature-card">
+        <span class="badge-soft mb-3">Step 1 of 2</span>
+        <h2 class="fw-semibold">Create your parking passport</h2>
+        <p class="muted">Save your favourite locations, sync vehicles, and get dynamic pricing alerts tailored to your commute.</p>
+        <div class="mt-4">
+          <div class="d-flex gap-3 mb-3">
+            <div class="feature-icon"><i class="bi bi-person-badge"></i></div>
+            <div>
+              <h6 class="mb-1">Unified profile</h6>
+              <p class="small text-muted mb-0">Manage vehicles, invoices, and preferences from one dashboard.</p>
+            </div>
+          </div>
+          <div class="d-flex gap-3 mb-3">
+            <div class="feature-icon"><i class="bi bi-lightning-charge"></i></div>
+            <div>
+              <h6 class="mb-1">Faster checkout</h6>
+              <p class="small text-muted mb-0">Stored payment methods and UPI handles let you book in under 30 seconds.</p>
+            </div>
+          </div>
+          <div class="d-flex gap-3">
+            <div class="feature-icon"><i class="bi bi-stars"></i></div>
+            <div>
+              <h6 class="mb-1">Loyalty rewards</h6>
+              <p class="small text-muted mb-0">Earn credits on every booking and unlock reserved premium slots.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card auth-card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Create your account</h5>
+          <form method="post" id="signupForm" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="floating-label-group">
+                  <input type="text" name="username" maxlength="150" class="form-control" required id="id_username" placeholder=" ">
+                  <label for="id_username">Username</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="floating-label-group">
+                  <input type="email" name="email" class="form-control" required id="id_email" placeholder=" ">
+                  <label for="id_email">Email</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="floating-label-group">
+                  <input type="text" name="phone" class="form-control" id="id_phone" pattern="^[0-9+\-() ]{7,20}$" placeholder=" ">
+                  <label for="id_phone">Phone</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="floating-label-group">
+                  <input type="password" name="password1" class="form-control" required id="id_password1" minlength="8" placeholder=" ">
+                  <label for="id_password1">Password</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="floating-label-group">
+                  <input type="password" name="password2" class="form-control" required id="id_password2" minlength="8" placeholder=" ">
+                  <label for="id_password2">Confirm Password</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-text">Use 8+ characters with a mix of letters and numbers.</div>
+              </div>
+            </div>
+            <button class="btn btn-primary w-100 mt-4" id="registerButton">Register</button>
+            <p class="text-center small text-muted mt-3">Already have an account? <a href="/accounts/login/">Login</a></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  document.getElementById('signupForm').addEventListener('submit', function(e) {
+    const p1 = document.getElementById('id_password1').value;
+    const p2 = document.getElementById('id_password2').value;
+    if (p1 !== p2) {
+      e.preventDefault();
+      window.ParkingApp && window.ParkingApp.showToast('Passwords do not match', 'bi-exclamation-triangle');
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+﻿{% extends 'base.html' %}
+{% block title %}Booking Confirmed{% endblock %}
+{% block content %}
+<section class="viewport-pad">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-xl-10">
+        <div class="card p-4 p-md-5">
+          {% if test_mode %}
+          <div class="alert alert-info" role="alert">
+            Payment gateway keys are not configured. This booking was auto-confirmed for local testing.
+          </div>
+          {% endif %}
+          <div class="row g-4 align-items-center">
+            <div class="col-lg-5 text-center text-lg-start">
+              <div class="text-success" style="font-size: 64px;">
+                <i class="bi bi-check2-circle"></i>
+              </div>
+              <h3 class="mt-2">Payment successful!</h3>
+              <p class="muted">Your parking slot is confirmed. Show the QR code at the entry gate for quick verification.</p>
+              <div class="qr-placeholder mx-auto mx-lg-0">
+                {% if booking.qr_code_image %}
+                  <img src="{{ booking.qr_code_image.url }}" alt="QR Code" class="img-thumbnail qr-img">
+                {% endif %}
+              </div>
+              <div class="d-grid gap-2 mt-4">
+                <a href="/bookings/dashboard/" class="btn btn-primary btn-pill">Back to dashboard</a>
+                <a href="#" class="btn btn-ghost btn-pill">Download receipt</a>
+              </div>
+            </div>
+            <div class="col-lg-7">
+              <div class="summary-drawer shadow-none border" style="position: static;">
+                <h5>Booking summary</h5>
+                <div class="summary-row">
+                  <span>Booking ID</span>
+                  <span>#{{ booking.id }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Slot</span>
+                  <span>{{ booking.slot.slot_number }} · {{ booking.slot.location }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Date</span>
+                  <span>{{ booking.date }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Time</span>
+                  <span>{{ booking.start_time }} - {{ booking.end_time }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Amount paid</span>
+                  <span class="fw-semibold">? {{ booking.amount }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Status</span>
+                  <span class="badge-soft">{{ booking.get_payment_status_display }}</span>
+                </div>
+                <div class="small muted">Receipt and QR copy sent to {{ booking.user.email }}.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

@@ -1,0 +1,109 @@
+﻿{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<section class="viewport-pad">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+      <div>
+        <span class="badge-soft">My slots overview</span>
+        <h2 class="fw-semibold mt-2">Your parking activity</h2>
+        <p class="muted mb-0">Track availability in real-time, manage upcoming reservations, and monitor your savings.</p>
+      </div>
+      <a href="/bookings/book/" class="btn btn-primary">Book a new slot</a>
+    </div>
+
+    <div class="row g-3 mb-5">
+      <div class="col-md-3">
+        <div class="card h-100">
+          <div class="muted small">Total slots</div>
+          <h3 class="mt-2">{{ total_slots }}</h3>
+          <div class="small text-success">{{ available_count }} available now</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card h-100">
+          <div class="muted small">Occupancy rate</div>
+          <h3 class="mt-2">{{ occupancy }}%</h3>
+          <div class="small text-muted">{{ booked_count }} currently booked</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card h-100">
+          <div class="muted small">Upcoming bookings</div>
+          <h3 class="mt-2">{{ upcoming_bookings|length }}</h3>
+          <div class="small text-muted">Next reservation updates below</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card h-100">
+          <div class="muted small">Lifetime bookings</div>
+          <h3 class="mt-2">{{ total_user_bookings }}</h3>
+          <div class="small text-muted">Showing recent activity</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h5 class="mb-0">Live slot status</h5>
+              <small class="muted">Green cards are ready to book right now.</small>
+            </div>
+            <div class="d-flex gap-2 small">
+              <span class="badge-soft">Available</span>
+              <span class="badge-soft" style="background: rgba(242, 201, 76, 0.25); color: #8c6b03;">Booked</span>
+            </div>
+          </div>
+          <div class="slot-grid">
+            {% for tile in slot_tiles %}
+              <div class="slot-tile" data-status="{% if tile.available %}available{% else %}booked{% endif %}" data-label="{% if tile.available %}Available{% else %}Booked{% endif %}">
+                <div class="slot-code">{{ tile.code }}</div>
+                <div class="muted small">{{ tile.vehicle_label }} &middot; &#8377;{{ tile.rate|floatformat:'0' }}/hr</div>
+                <div class="slot-location mt-1">{{ tile.location }}</div>
+                <div class="muted small mt-2">Status: {% if tile.available %}Available{% else %}Booked{% endif %}</div>
+              </div>
+            {% empty %}
+              <p class="muted">No slots configured yet. Add slots from the admin dashboard.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card mb-4">
+          <h5 class="mb-3">Next reservations</h5>
+          {% if upcoming_bookings %}
+            <ul class="list-unstyled mb-0 small">
+              {% for booking in upcoming_bookings %}
+              <li class="mb-3 pb-3 border-bottom">
+                <div class="fw-semibold">Slot {{ booking.slot.slot_number }} &middot; {{ booking.date }}</div>
+                <div class="muted">{{ booking.start_time }} - {{ booking.end_time }}</div>
+                <div class="small">Amount: &#8377;{{ booking.amount }}</div>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="muted mb-0">No upcoming bookings yet. Reserve your next slot to see it here.</p>
+          {% endif %}
+        </div>
+        <div class="card">
+          <h5 class="mb-3">Recent activity</h5>
+          {% if recent_bookings %}
+            <ul class="list-unstyled mb-0 small">
+              {% for booking in recent_bookings %}
+              <li class="mb-3 pb-3 border-bottom">
+                <div class="fw-semibold">Slot {{ booking.slot.slot_number }}</div>
+                <div class="muted">{{ booking.date }} &middot; {{ booking.get_payment_status_display }}</div>
+              </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="muted mb-0">Your recent bookings will appear here.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

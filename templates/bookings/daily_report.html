@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Daily Revenue{% endblock %}
+{% block content %}
+<h3>Daily Revenue Report</h3>
+<p class="text-muted">Date: {{ date }}</p>
+<div class="card p-3 shadow-sm" style="max-width: 480px;">
+  <div class="d-flex justify-content-between">
+    <span>Total paid bookings:</span>
+    <strong>{{ count }}</strong>
+  </div>
+  <div class="d-flex justify-content-between">
+    <span>Total revenue:</span>
+    <strong>{{ total }}</strong>
+  </div>
+</div>
+{% endblock %}
+

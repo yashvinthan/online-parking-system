@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<section class="viewport-pad">
+  <div class="container">
+    <div class="auth-wrapper">
+      <div class="glass-card rounded-xl p-4 p-md-5 text-white"> 
+        <span class="badge-soft mb-3">Trusted by 50K+ drivers</span>
+        <h2 class="fw-semibold">Access your bookings securely</h2>
+        <p class="text-white-75">Manage saved vehicles, view past reservations, and checkout faster with stored payment methods.</p>
+        <ul class="mt-4 list-unstyled small text-white-75">
+          <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-shield-lock"></i><span>End-to-end encrypted sign-in</span></li>
+          <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-phone"></i><span>One-tap UPI payments supported</span></li>
+          <li class="d-flex align-items-center gap-2"><i class="bi bi-badge-ad"></i><span>No ads, only seamless parking</span></li>
+        </ul>
+        <div class="d-flex gap-3 mt-4">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/PCI-DSS-logo.svg" alt="PCI" height="28">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/3/30/Razorpay_logo.svg" alt="Razorpay" height="28">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" height="28">
+        </div>
+      </div>
+
+      <div class="card auth-card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Welcome back</h5>
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="floating-label-group mb-3">
+              <input type="text" name="username" maxlength="150" class="form-control" required id="id_username" placeholder=" ">
+              <label for="id_username">Username</label>
+            </div>
+            <div class="floating-label-group mb-3">
+              <input type="password" name="password" class="form-control" required id="id_password" placeholder=" ">
+              <label for="id_password">Password</label>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="remember">
+                <label class="form-check-label" for="remember">Remember me</label>
+              </div>
+              <a href="#" class="small text-muted">Forgot password?</a>
+            </div>
+            <button class="btn btn-primary w-100 mb-3">Login</button>
+            <div class="d-grid gap-2 mb-3">
+              <a class="btn btn-ghost" href="{% provider_login_url 'google' %}"><i class="bi bi-google me-2"></i>Continue with Google</a>
+            </div>
+            <p class="text-center small text-muted">New to Online Parking? <a href="/accounts/signup/">Create an account</a></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
