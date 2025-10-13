@@ -54,76 +54,84 @@
   </div>
 </section>
 
-<section class="viewport-pad bg-dark text-white zdc-host-section">
+<!-- ZaraDataCenter hosting attribution -->
+<section class="viewport-pad text-white zdc-host-section">
   <div class="container zdc-host-wrapper">
-    <a class="zdc-host-badge" href="https://www.zaradatacenter.org" target="_blank" rel="noopener noreferrer"
-       data-tooltip="Powered by ZaraDataCenter - infrastructure &amp; cloud services provider.">
+    <a class="zdc-host-badge"
+       href="https://www.zaradatacenter.org"
+       target="_blank"
+       rel="noopener noreferrer"
+       aria-label="Hosted by ZaraDataCenter - opens in a new tab"
+       data-tooltip="Proudly hosted on ZaraDataCenter's secure infrastructure.">
       <span class="zdc-host-emblem" aria-hidden="true"></span>
       <span class="zdc-host-copy">
         <span class="zdc-host-title">Hosted by <strong>ZaraDataCenter</strong></span>
-        <span class="zdc-host-tagline">Cutting-edge infrastructure solutions powering the next generation of digital experiences.</span>
+        <span class="zdc-host-tagline">Enterprise-grade infrastructure powering your digital experience.</span>
       </span>
     </a>
   </div>
 </section>
 
 <style>
+  /* ZaraDataCenter hosting attribution styles */
+  .zdc-host-section {
+    padding-block: clamp(2rem, 3vw, 3rem);
+    margin-block: clamp(2rem, 4vw, 3.5rem);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
   .zdc-host-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding-block: clamp(1.25rem, 3vw, 1.75rem);
-  }
-
-  .zdc-host-section {
-    padding-block: clamp(2rem, 3vw, 3rem);
-    background: transparent;
-    border-block: 1px solid rgba(255, 255, 255, 0.04);
-    margin-block: clamp(2rem, 4vw, 3rem);
   }
 
   .zdc-host-badge {
     position: relative;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.65rem;
-    padding: 0.9rem 1.3rem;
+    padding: 0.9rem 1.35rem;
+    width: 100%;
+    max-width: 24rem;
     border-radius: 999px;
-    background: linear-gradient(135deg, rgba(9, 28, 44, 0.88), rgba(14, 46, 65, 0.92));
-    border: 1px solid rgba(32, 192, 228, 0.25);
-    color: inherit;
+    color: rgba(232, 244, 255, 0.9);
     text-decoration: none;
     font-family: inherit;
+    background: linear-gradient(130deg, rgba(11, 30, 48, 0.94), rgba(18, 55, 80, 0.94));
+    border: 1px solid rgba(32, 192, 228, 0.35);
+    box-shadow: 0 16px 32px rgba(6, 18, 31, 0.22);
     transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
-    max-width: 24rem;
-    width: 100%;
-    box-shadow: 0 16px 32px rgba(6, 18, 31, 0.24);
-}
+    animation: zdcFadeIn 0.45s ease-out both;
+  }
 
   .zdc-host-badge:hover,
   .zdc-host-badge:focus-visible {
-    background: linear-gradient(135deg, rgba(18, 54, 74, 0.95), rgba(23, 84, 108, 0.95));
-    border-color: rgba(32, 192, 228, 0.65);
+    background: linear-gradient(130deg, rgba(22, 66, 92, 1), rgba(30, 94, 122, 1));
+    border-color: rgba(32, 192, 228, 0.7);
+    color: rgba(239, 250, 255, 0.95);
     transform: translateY(-2px);
-    color: rgba(230, 247, 255, 0.95);
+    box-shadow: 0 18px 36px rgba(7, 22, 34, 0.32);
+    outline: none;
   }
 
   .zdc-host-badge::after {
     content: attr(data-tooltip);
     position: absolute;
-    bottom: 125%;
+    bottom: 130%;
     left: 50%;
     transform: translateX(-50%);
     padding: 0.5rem 0.75rem;
-    background: rgba(10, 24, 38, 0.95);
-    color: #e8f4ff;
+    background: rgba(6, 18, 31, 0.95);
+    color: #eaf7ff;
     font-size: 0.75rem;
     border-radius: 6px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
     width: max-content;
-    max-width: 17rem;
+    max-width: 18rem;
     text-align: center;
     line-height: 1.3;
   }
@@ -137,8 +145,8 @@
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(32, 192, 228, 0.95), rgba(9, 24, 41, 0.95));
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    background: radial-gradient(circle at 30% 30%, rgba(32, 192, 228, 0.95), rgba(10, 28, 46, 0.95));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
     flex-shrink: 0;
   }
 
@@ -151,27 +159,31 @@
 
   .zdc-host-title {
     font-size: 0.95rem;
-    font-weight: 500;
-    color: rgba(232, 244, 255, 0.9);
+    font-weight: 600;
   }
 
   .zdc-host-title strong {
-    font-weight: 600;
-    color: rgba(196, 243, 255, 0.98);
+    font-weight: 700;
+    color: rgba(183, 240, 255, 0.98);
   }
 
   .zdc-host-tagline {
     font-size: 0.8rem;
-    color: rgba(222, 240, 247, 0.6);
+    color: rgba(204, 230, 240, 0.68);
   }
 
   @media (max-width: 767px) {
+    .zdc-host-section {
+      padding-block: 1.75rem;
+      margin-block: 1.75rem;
+    }
+
     .zdc-host-badge {
-      padding: 0.8rem 1.05rem;
-      border-radius: 10px;
+      padding: 0.85rem 1.1rem;
+      border-radius: 14px;
       max-width: 100%;
       justify-content: center;
-      box-shadow: 0 12px 24px rgba(6, 18, 31, 0.24);
+      box-shadow: 0 12px 24px rgba(6, 18, 31, 0.22);
     }
 
     .zdc-host-tagline {
@@ -184,9 +196,21 @@
     .zdc-host-badge::after {
       transition: none;
     }
-    .zdc-host-badge:hover,
-    .zdc-host-badge:focus-visible {
+
+    .zdc-host-badge {
+      animation: none;
       transform: none;
+    }
+  }
+
+  @keyframes zdcFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 </style>
