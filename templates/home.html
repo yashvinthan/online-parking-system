@@ -54,8 +54,8 @@
   </div>
 </section>
 
-<section class="viewport-pad bg-dark text-white">
-  <div class="container">
+<section class="viewport-pad bg-dark text-white zdc-host-section">
+  <div class="container zdc-host-wrapper">
     <a class="zdc-host-badge" href="https://www.zaradatacenter.org" target="_blank" rel="noopener noreferrer"
        data-tooltip="Powered by ZaraDataCenter - infrastructure &amp; cloud services provider.">
       <span class="zdc-host-emblem" aria-hidden="true"></span>
@@ -68,6 +68,18 @@
 </section>
 
 <style>
+  .zdc-host-section {
+    padding-block: clamp(2rem, 3vw, 3.5rem);
+    background: rgba(6, 16, 26, 0.94);
+  }
+
+  .zdc-host-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-block: 1rem;
+  }
+
   .zdc-host-badge {
     position: relative;
     display: flex;
@@ -80,8 +92,10 @@
     color: inherit;
     text-decoration: none;
     font-family: inherit;
-    transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
-    max-width: 100%;
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    max-width: 28rem;
+    width: 100%;
+    box-shadow: 0 12px 24px rgba(6, 18, 31, 0.32);
   }
 
   .zdc-host-badge:hover,
@@ -149,9 +163,20 @@
   }
 
   @media (max-width: 767px) {
+    .zdc-host-section {
+      padding-block: 1.5rem;
+    }
+
+    .zdc-host-wrapper {
+      padding-block: 0.5rem;
+    }
+
     .zdc-host-badge {
       padding: 0.75rem 1rem;
-      border-radius: 12px;
+      border-radius: 10px;
+      max-width: none;
+      justify-content: center;
+      box-shadow: 0 8px 16px rgba(6, 18, 31, 0.24);
     }
 
     .zdc-host-tagline {
