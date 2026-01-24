@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Google Pay & UPI Checkout{% endblock %}
+{% block content %}
+<section class="viewport-pad">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card p-4 p-md-5">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+            <div>
+              <span class="badge-soft">Secure payment</span>
+              <h3 class="mt-2">Complete Your Payment</h3>
+              <p class="muted mb-0">Click the button below to complete your payment using Google Pay, UPI, or other payment methods.</p>
+              <div class="mt-3">
+                <p class="mb-1"><strong>Booking Details:</strong></p>
+                <ul class="small muted">
+                  <li>Slot: {{ booking.slot.slot_number }}</li>
+                  <li>Date: {{ booking.date }}</li>
+                  <li>Time: {{ booking.start_time }} - {{ booking.end_time }}</li>
+                  <li><strong>Amount: ₹{{ booking.amount }}</strong></li>
+                </ul>
+              </div>
+            </div>
+            <div class="text-center">
+              <svg class="mb-3" width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" stroke="#4CAF50" stroke-width="2"/>
+                <path d="M26 32l4 4 10-10" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div class="small muted">₹{{ booking.amount }}</div>
+            </div>
+          </div>
+          <div class="progress mt-4" style="height: 6px;">
+            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: 60%"></div>
+          </div>
+          <div class="mt-4 d-flex gap-3 flex-wrap">
+            <button id="paymentButton" class="btn btn-success btn-pill" type="button">
+              <span class="me-2">💳</span> Pay with Google Pay / UPI
+            </button>
+            <button type="button" class="btn btn-ghost btn-pill" onclick="window.history.back()">Cancel</button>
+          </div>
+          <div class="small text-muted mt-3">
+            <p class="mb-1">✓ Secure payment with Razorpay</p>
+            <p class="mb-0">Need help? Contact support at <a href="mailto:support@onlineparking.com">support@onlineparking.com</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  const options = {
+    key: "{{ razorpay_key }}",
+    amount: {{ booking.amount|add:"00"|stringformat:"d" }},
+    currency: "INR",
+    name: "Online Parking System",
+    description: "Parking Booking - Slot {{ booking.slot.slot_number }}",
+    order_id: "{{ razorpay_order_id }}",
+    image: "https://parking.webistzu.online/static/logo.png",
+    handler: function (response) {
+      // Create a form to verify payment
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '{% url "bookings:razorpay_verify" %}';
+      
+      const fields = {
+        'razorpay_order_id': "{{ razorpay_order_id }}",
+        'razorpay_payment_id': response.razorpay_payment_id,
+        'razorpay_signature': response.razorpay_signature,
+        'csrfmiddlewaretoken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}'
+      };
+      
+      Object.keys(fields).forEach(key => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = fields[key];
+        form.appendChild(input);
+      });
+      
+      document.body.appendChild(form);
+      form.submit();
+    },
+    modal: {
+      ondismiss: function() {
+        // Payment cancelled by user
+        window.location.href = '{% url "bookings:razorpay_failed" %}?razorpay_order_id={{ razorpay_order_id }}';
+      }
+    },
+    prefill: {
+      name: "{{ user_name }}",
+      email: "{{ user_email }}",
+      contact: "{{ user_phone }}"
+    },
+    theme: {
+      color: "#3399cc"
+    },
+    method: {
+      upi: true,
+      card: true,
+      wallet: true
+    }
+  };
+
+  const rzp = new Razorpay(options);
+
+  document.getElementById('paymentButton').onclick = function(e) {
+    e.preventDefault();
+    rzp.open();
+  };
+
+  // Auto-open payment dialog
+  window.addEventListener('load', function() {
+    setTimeout(() => rzp.open(), 500);
+  });
+</script>
+{% endblock %}

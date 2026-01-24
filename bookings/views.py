@@ -117,16 +117,8 @@ def book_slot(request):
     form = BookingForm(request.POST or None)
     form.fields['slot'].queryset = ParkingSlot.objects.order_by('slot_number')
     selected_slot_id = None
-    preferred_method = request.user.preferred_payment_method or User.PAYMENT_METHOD_GPAY
 
     if request.method == 'POST':
-        posted_method = request.POST.get('payment_method') or preferred_method
-        payment_choices = dict(User.PAYMENT_CHOICES)
-        if posted_method in payment_choices and posted_method != request.user.preferred_payment_method:
-            request.user.preferred_payment_method = posted_method
-            request.user.save(update_fields=['preferred_payment_method'])
-        preferred_method = posted_method
-
         if form.is_valid():
             slot = form.cleaned_data['slot']
             date = form.cleaned_data['date']
@@ -154,7 +146,7 @@ def book_slot(request):
                 return redirect('bookings:checkout', booking_id=booking.id)
         selected_slot_id = request.POST.get('slot')
     else:
-        preferred_method = request.user.preferred_payment_method or User.PAYMENT_METHOD_GPAY
+        pass
 
     default_rate = vehicle_choices[0]['rate'] if vehicle_choices else _get_hourly_rate(ParkingSlot.VEHICLE_SEDAN)
 
@@ -175,7 +167,7 @@ def book_slot(request):
         'vehicle_choices': vehicle_choices,
         'selected_slot_id': selected_slot_id,
         'default_rate': default_rate,
-        'preferred_payment_method': preferred_method,
+        'preferred_payment_method': User.PAYMENT_METHOD_GPAY,
         'selected_vehicle': selected_vehicle,
     }
     return render(request, 'bookings/booking_form.html', context)

@@ -100,23 +100,11 @@
             </div>
             <div>
               <div class="muted small mb-2">Payment method</div>
-              <div class="payment-methods" id="paymentMethodList">
-                {% for value, label in request.user.PAYMENT_CHOICES %}
-                  {% if value == preferred_payment_method %}
-                    <div class="payment-option is-selected" data-method="{{ value }}" role="button" tabindex="0" aria-pressed="true">
-                      {% if value == 'gpay' %}<i class="bi bi-google"></i>{% elif value == 'paytm' %}<i class="bi bi-wallet2"></i>{% else %}<i class="bi bi-credit-card"></i>{% endif %}
-                      {{ label }}
-                    </div>
-                  {% else %}
-                    <div class="payment-option" data-method="{{ value }}" role="button" tabindex="0" aria-pressed="false">
-                      {% if value == 'gpay' %}<i class="bi bi-google"></i>{% elif value == 'paytm' %}<i class="bi bi-wallet2"></i>{% else %}<i class="bi bi-credit-card"></i>{% endif %}
-                      {{ label }}
-                    </div>
-                  {% endif %}
-                {% endfor %}
+              <div class="payment-method-badge">
+                <i class="bi bi-google"></i> Google Pay / UPI
               </div>
             </div>
-            <input type="hidden" name="payment_method" value="{{ preferred_payment_method }}" id="paymentMethodInput">
+            <input type="hidden" name="payment_method" value="gpay" id="paymentMethodInput">
             <div class="d-grid gap-2 mt-auto">
               <button type="submit" class="btn btn-primary btn-pill">Proceed to payment</button>
               <button type="button" class="btn btn-ghost btn-pill" onclick="window.history.back()">Cancel</button>

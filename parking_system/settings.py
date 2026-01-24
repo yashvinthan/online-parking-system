@@ -33,7 +33,7 @@ else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Allow common local hosts plus Cloudflare tunnel domains out of the box
-ALLOWED_HOSTS.extend(['[::1]', '0.0.0.0', '.trycloudflare.com'])
+ALLOWED_HOSTS.extend(['[::1]', '0.0.0.0', '.trycloudflare.com', 'parking.webistzu.online'])
 ALLOWED_HOSTS = list(dict.fromkeys(ALLOWED_HOSTS))
 
 csrf_trusted_env = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS')
@@ -46,6 +46,7 @@ CSRF_TRUSTED_ORIGINS.extend([
     'https://localhost',
     'https://127.0.0.1',
     'https://*.trycloudflare.com',
+    'https://parking.webistzu.online',
 ])
 CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
 
