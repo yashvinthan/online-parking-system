@@ -1,0 +1,79 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: parking-db
+    environment:
+      POSTGRES_DB: parking_system
+      POSTGRES_USER: parking_user
+      POSTGRES_PASSWORD: parking_password_123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parking_user -d parking_system"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - parking_network
+
+  web:
+    build: .
+    container_name: parking-system
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DEBUG: "1"
+      DJANGO_DEBUG: "1"
+      DJANGO_ALLOWED_HOSTS: "*"
+      DJANGO_CSRF_TRUSTED_ORIGINS: "https://parking.webistzu.online,https://localhost:8000,http://localhost:8000,http://127.0.0.1:8000"
+      DATABASE_URL: "postgresql://parking_user:parking_password_123@db:5432/parking_system"
+      DJANGO_SECRET_KEY: "your-secret-key-change-in-production"
+      STRIPE_PUBLIC_KEY: ""
+      STRIPE_SECRET_KEY: ""
+      STRIPE_CURRENCY: "inr"
+      BOOKING_HOURLY_RATE: "50"
+      GOOGLE_CLIENT_ID: ""
+      GOOGLE_CLIENT_SECRET: ""
+      ACCOUNT_EMAIL_VERIFICATION: "optional"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - parking_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: parking-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - parking_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+  redis_data:
+
+networks:
+  parking_network:
+    driver: bridge
