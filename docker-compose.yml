@@ -1,9 +1,8 @@
-version: '3.9'
-
 services:
   db:
     image: postgres:16-alpine
     container_name: parking-db
+    restart: unless-stopped  # Add this line
     environment:
       POSTGRES_DB: parking_system
       POSTGRES_USER: parking_user
@@ -23,6 +22,7 @@ services:
   web:
     build: .
     container_name: parking-system
+    restart: unless-stopped  # Add this line
     command: >
       sh -c "python manage.py migrate &&
              python manage.py collectstatic --noinput &&
@@ -56,6 +56,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: parking-redis
+    restart: unless-stopped  # Add this line
     ports:
       - "6379:6379"
     volumes:
@@ -66,14 +67,4 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
-
-volumes:
-  postgres_data:
-  static_volume:
-  media_volume:
-  redis_data:
-
-networks:
-  parking_network:
-    driver: bridge
+      retries: 5   
