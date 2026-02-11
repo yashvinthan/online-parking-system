@@ -1,3 +1,5 @@
+version: '3.9'
+
 services:
   db:
     image: postgres:16-alpine
@@ -67,4 +69,14 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5   
+      retries: 5
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+  redis_data:
+
+networks:
+  parking_network:
+    driver: bridge
