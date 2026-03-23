@@ -1,0 +1,768 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Premium Dashboard UI */
+    body {
+        background-color: #0c0f12;
+        background-image: radial-gradient(circle at 50% 50%, #1a2230 0%, #0c0f12 100%);
+        color: #f1f3f5;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        margin: 0;
+        overflow: hidden;
+    }
+    
+    .simulation-container {
+        display: flex;
+        flex-direction: row;
+        gap: 25px;
+        padding: 25px;
+        height: 100vh;
+        box-sizing: border-box;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .simulation-controls {
+        flex: 1;
+        min-width: 320px;
+        background: rgba(20, 24, 31, 0.65);
+        backdrop-filter: blur(16px) saturate(120%);
+        -webkit-backdrop-filter: blur(16px) saturate(120%);
+        padding: 24px;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .canvas-container {
+        flex: 3;
+        background: #090b0e;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    canvas {
+        background:
+            linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: 50px 50px;
+        background-color: #0b0d11;
+        border-radius: 4px;
+    }
+
+    .control-group {
+        margin-bottom: 15px;
+    }
+
+    .control-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #8c9ba5;
+    }
+
+    .control-group input, select {
+        width: 100%;
+        padding: 10px 12px;
+        background: rgba(30, 36, 45, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #fff;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    
+    .control-group input:focus, select:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        outline: none;
+        background: rgba(30, 36, 45, 0.8);
+    }
+
+    .btn {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #0082FB 0%, #0056B3 100%);
+        color: white;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 8px;
+        box-shadow: 0 4px 12px rgba(0, 130, 251, 0.3);
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 130, 251, 0.4);
+        filter: brightness(1.1);
+    }
+
+    .btn:active { transform: translateY(0); }
+
+    .btn.secondary {
+        background: rgba(45, 52, 63, 0.5);
+        color: #c5d1db;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: none;
+    }
+    .btn.secondary:hover {
+        background: rgba(45, 52, 63, 0.8);
+        color: #fff;
+    }
+
+    .log-panel {
+        flex: 1;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        padding: 12px;
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 0.8rem;
+    }
+
+    .log-entry {
+        margin-bottom: 6px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        padding-bottom: 6px;
+        color: #a4b6c6;
+    }
+    
+    .log-RREQ { color: #f39c12; }
+    .log-RREP { color: #2ecc71; }
+    .log-RERR { color: #e74c3c; }
+    .log-DATA { color: #a29bfe; font-weight: bold; }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        background: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid rgba(52, 152, 219, 0.2);
+    }
+    
+    .loading-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(11, 13, 17, 0.85);
+        backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 500;
+        z-index: 10;
+        display: none;
+    }
+
+    /* Responsive Scaling for All Screens */
+    @media (max-width: 992px) {
+        .simulation-container {
+            flex-direction: column;
+            height: auto;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .simulation-controls {
+            width: 100%;
+            min-width: unset;
+        }
+        .canvas-container {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 4 / 3;
+        }
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+    }
+    @media (max-width: 480px) {
+        .simulation-container {
+            padding: 10px;
+        }
+        .simulation-controls {
+            padding: 15px;
+        }
+    }
+
+    /* Light Mode Overrides */
+    body.light-mode {
+        background-color: #f5f6fa;
+        color: #2c3e50;
+    }
+    body.light-mode .simulation-controls {
+        background: #ffffff;
+        border: 1px solid #dcdde1;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    body.light-mode canvas {
+        background-color: #ffffff;
+        background:
+            linear-gradient(rgba(200, 200, 200, 0.2) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(200, 200, 200, 0.2) 1px, transparent 1px);
+        background-size: 50px 50px;
+        border: 1px solid #dcdde1;
+    }
+    body.light-mode .log-panel {
+        background: #f1f2f6;
+        border-color: #dcdde1;
+    }
+    body.light-mode .control-group input, body.light-mode select {
+        background: #ffffff;
+        color: #2c3e50;
+        border: 1px solid #ccc;
+    }
+
+</style>
+
+<div class="simulation-container">
+    <div class="simulation-controls">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 12px;">
+            <h4 style="margin:0; font-size: 1.25rem;">MANET Simulation</h4>
+            <button id="themeToggle" style="background: none; border: 1px solid #555; color: #aaa; border-radius: 4px; padding: 2px 8px; font-size: 0.8rem; cursor: pointer;">🌓 Mode</button>
+        </div>
+        
+        <div class="status-badge" id="simStatus">Status: Ready</div>
+
+        <!-- STATS DASHBOARD (⭐ 3) -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;">
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 12px; padding: 10px; text-align: center;">
+                <div style="color: #8c9ba5; font-size: 0.7rem; font-weight: 500; text-transform: uppercase; tracking: 0.5px;">Nodes</div>
+                <div id="statNodes" style="color: #3498db; font-size: 1.4rem; font-weight: 700; margin-top: 4px;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 12px; padding: 10px; text-align: center;">
+                <div style="color: #8c9ba5; font-size: 0.7rem; font-weight: 500; text-transform: uppercase;">Connections</div>
+                <div id="statConns" style="color: #2ecc71; font-size: 1.4rem; font-weight: 700; margin-top: 4px;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 12px; padding: 10px; text-align: center;">
+                <div style="color: #8c9ba5; font-size: 0.7rem; font-weight: 500; text-transform: uppercase;">Packets</div>
+                <div id="statPackets" style="color: #9b59b6; font-size: 1.4rem; font-weight: 700; margin-top: 4px;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 12px; padding: 10px; text-align: center;">
+                <div style="color: #8c9ba5; font-size: 0.7rem; font-weight: 500; text-transform: uppercase;">Routes</div>
+                <div id="statRoutes" style="color: #f1c40f; font-size: 1.4rem; font-weight: 700; margin-top: 4px;">0</div>
+            </div>
+        </div>
+        
+        <div class="control-group" style="margin-bottom: 10px;">
+            <label for="nodeCount">Number of Cars (Nodes)</label>
+            <input type="number" id="nodeCount" value="15" min="5" max="50">
+        </div>
+        
+        <div class="control-group" style="margin-bottom: 10px;">
+            <label for="wifiRange">WiFi Range (m)</label>
+            <input type="number" id="wifiRange" value="150" min="50" max="400">
+        </div>
+
+        <!-- SPEED CONTROL (⭐ 8) -->
+        <div class="control-group" style="margin-bottom: 10px;">
+            <label for="speedSelect">Time Scaling (Speed)</label>
+            <select id="speedSelect" style="width: 100%; padding: 8px; background: #2d2d2d; border: 1px solid #444; color: #fff; border-radius: 6px;">
+                <option value="500">🐌 Slow (500ms)</option>
+                <option value="120" selected>🚗 Normal (120ms)</option>
+                <option value="40">⚡ Fast (40ms)</option>
+            </select>
+        </div>
+
+        <!-- TOGGLES & ACTIONS (⭐ 4, 5) -->
+        <div style="display: flex; gap: 8px; margin-bottom: 12px; font-size: 0.85rem;">
+            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                <input type="checkbox" id="toggleRanges" checked> Show Wifi
+            </label>
+            <button id="btnBreak" style="margin-left: auto; background: #c0392b; border: none; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; color: #fff; cursor: pointer;">⚠️ Break Link</button>
+        </div>
+        
+        <div style="background: #111; padding: 12px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px;">
+            <div style="color: #aaa; font-size: 0.85rem; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px;"><strong>Color Legend</strong></div>
+            <div style="font-size: 0.8rem; line-height: 1.5; color: #fff;">
+                <div><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #3498db; margin-right: 8px;"></span>🔵 Driving</div>
+                <div><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f1c40f; margin-right: 8px;"></span>🟡 Parking</div>
+                <div><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #2ecc71; margin-right: 8px;"></span>🟢 Parked</div>
+                <div><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e74c3c; margin-right: 8px;"></span>🔴 Leaving</div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin: 10px 0 15px 0;">
+            <button class="btn" id="generateBtn" style="padding: 10px; font-weight: bold; font-size: 0.9rem; flex: 2; margin-bottom: 0; width: auto !important;">Generate Scenario</button>
+            <button class="btn secondary" id="playPauseBtn" style="padding: 10px; font-size: 0.9rem; flex: 1; margin-bottom: 0; width: auto !important;" disabled>Play</button>
+            <button class="btn secondary" id="resetBtn" style="padding: 10px; font-size: 0.9rem; flex: 1; margin-bottom: 0; width: auto !important;" disabled>Reset</button>
+        </div>
+
+        <h4 style="margin-top: 15px; margin-bottom: 5px; color: #aaa; font-size: 0.9rem;">Active Events</h4>
+        <div class="log-panel" id="logPanel" style="height: 120px;">
+            <div style="color: #666; text-align: center; margin-top: 20px;">Initialize simulation</div>
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <div class="loading-overlay" id="loadingOverlay">Computing Routes & Topologies...</div>
+        <canvas id="simCanvas" width="800" height="600"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    const logPanel = document.getElementById('logPanel');
+    const simStatus = document.getElementById('simStatus');
+    
+    let historyData = [];
+    let currentTick = 0;
+    let isPlaying = false;
+    let animationId = null;
+    
+    // UI Elements
+    const generateBtn = document.getElementById('generateBtn');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const overlay = document.getElementById('loadingOverlay');
+    function drawParkingLot() {
+        const W = canvas.width, H = canvas.height;
+
+        // ── constants matching simulation.py ──────────────────────────────
+        const ENTRY_X     = 740, EXIT_X = 60;
+        const MAIN_LANE_Y = 480;
+        const AISLE_Y     = [405, 305, 205, 105];
+        const SPOT_CY     = [345, 245, 145,  55];
+        const SPOT_COLS   = [160, 270, 380, 490, 600, 710];
+        const SW = 80, SH = 70;
+
+        // ── tarmac
+        ctx.fillStyle = '#12121a';
+        ctx.fillRect(0, 0, W, H);
+
+        // ── main road band (below MAIN_LANE_Y)
+        ctx.fillStyle = '#20202e';
+        ctx.fillRect(0, MAIN_LANE_Y, W, H - MAIN_LANE_Y);
+        ctx.strokeStyle = '#ffffff15';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([12, 8]);
+        ctx.beginPath(); ctx.moveTo(0, MAIN_LANE_Y); ctx.lineTo(W, MAIN_LANE_Y); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // ── aisle bands
+        ctx.fillStyle = '#1c1c2a';
+        for (let ay of AISLE_Y) {
+            ctx.fillRect(0, ay - 12, W, 24);
+            ctx.strokeStyle = '#ffffff10';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath(); ctx.moveTo(0, ay); ctx.lineTo(W, ay); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // ── entry / exit vertical guide lines
+        ctx.strokeStyle = '#2ecc7130';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 8]);
+        ctx.beginPath(); ctx.moveTo(ENTRY_X, 0); ctx.lineTo(ENTRY_X, H); ctx.stroke();
+        ctx.strokeStyle = '#e74c3c30';
+        ctx.beginPath(); ctx.moveTo(EXIT_X, 0); ctx.lineTo(EXIT_X, H); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // ── parking bays (spots above their aisles: SPOT_CY[r] < AISLE_Y[r])
+        for (let ri = 0; ri < SPOT_CY.length; ri++) {
+            for (let ci = 0; ci < SPOT_COLS.length; ci++) {
+                const px = SPOT_COLS[ci] - SW / 2;
+                const py = SPOT_CY[ri] - SH / 2;
+                ctx.fillStyle   = '#22223a';
+                ctx.strokeStyle = '#38385a';
+                ctx.lineWidth   = 1.5;
+                ctx.fillRect(px, py, SW, SH);
+                ctx.strokeRect(px, py, SW, SH);
+                ctx.fillStyle = '#40406a';
+                ctx.font = 'bold 15px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('P', SPOT_COLS[ci], SPOT_CY[ri] + 6);
+            }
+        }
+
+        // ── ENTRANCE gate (bottom-right)
+        ctx.fillStyle = 'rgba(46,204,113,0.18)';
+        ctx.fillRect(ENTRY_X - 42, H - 52, 84, 52);
+        ctx.strokeStyle = '#2ecc71';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(ENTRY_X - 42, H - 52, 84, 52);
+        ctx.fillStyle = '#2ecc71';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('ENTRANCE', ENTRY_X, H - 30);
+        ctx.fillText('▲', ENTRY_X, H - 12);
+
+        // ── EXIT gate (bottom-left)
+        ctx.fillStyle = 'rgba(231,76,60,0.18)';
+        ctx.fillRect(EXIT_X - 42, H - 52, 84, 52);
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(EXIT_X - 42, H - 52, 84, 52);
+        ctx.fillStyle = '#e74c3c';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('EXIT', EXIT_X, H - 30);
+        ctx.fillText('▼', EXIT_X, H - 12);
+    }
+
+    function drawNode(x, y, id, state) {
+        let fill = '#3498db';    // CRUISING / default
+        let stroke = '#2980b9';
+        
+        if (state === 'ENTERING') {
+            fill = '#9b59b6'; stroke = '#8e44ad';   // Purple
+        } else if (state === 'CRUISING') {
+            fill = '#3498db'; stroke = '#2980b9';   // Blue
+        } else if (state === 'PARKING') {
+            fill = '#f1c40f'; stroke = '#f39c12';   // Yellow
+        } else if (state === 'PARKED') {
+            fill = '#2ecc71'; stroke = '#27ae60';   // Green
+        } else if (state === 'LEAVING') {
+            fill = '#e74c3c'; stroke = '#c0392b';   // Red
+        }
+
+        // Car/Node Base
+        ctx.fillStyle = fill;
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Node ID Text
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(id, x, y - 10);
+    }
+
+    let hoveredNode = null;
+    let selectedNodes = []; // Store IDs of selected nodes
+
+    function drawLinks(links, nodesMap) {
+        links.forEach(link => {
+            const n1 = nodesMap[link.source];
+            const n2 = nodesMap[link.target];
+            if (n1 && n2) {
+                const isSelected = selectedNodes.includes(link.source) || selectedNodes.includes(link.target);
+                
+                ctx.strokeStyle = isSelected ? '#f39c12' : 'rgba(255, 255, 255, 0.15)';
+                ctx.lineWidth = isSelected ? 3 : 1;
+                ctx.beginPath();
+                ctx.moveTo(n1.x, n1.y);
+                ctx.lineTo(n2.x, n2.y);
+                ctx.stroke();
+            }
+        });
+    }
+
+    function drawNodeRange(n, subtle = false) {
+        const range = document.getElementById('wifiRange').value;
+        ctx.fillStyle = subtle ? 'rgba(52, 152, 219, 0.01)' : 'rgba(52, 152, 219, 0.05)';
+        ctx.strokeStyle = subtle ? 'rgba(52, 152, 219, 0.1)' : 'rgba(52, 152, 219, 0.3)';
+        ctx.lineWidth = 1;
+        if (!subtle) ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, parseFloat(range), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        if (!subtle) {
+            // Highlight border
+            ctx.strokeStyle = '#e67e22';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, 10, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    }
+    
+    function drawEvents(events, nodesMap) {
+        events.forEach(ev => {
+            // RREQ Broadcasts as expanding halos
+            if (ev.event_type.startsWith('RREQ')) {
+                let node = nodesMap[ev.src || ev.sender];
+                if (node) {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, 25, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(243, 156, 18, 0.3)'; // Orange
+                    ctx.fill();
+                }
+            }
+            // RREP Unicasts
+            if (ev.event_type.startsWith('RREP')) {
+                let srcNode = nodesMap[ev.sender || ev.src];
+                let destNode = nodesMap[ev.receiver || ev.dest];
+                if (srcNode && destNode) {
+                    ctx.strokeStyle = '#2ecc71';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(srcNode.x, srcNode.y);
+                    ctx.lineTo(destNode.x, destNode.y);
+                    ctx.stroke();
+                }
+            }
+            // DATA Transfers
+            if (ev.event_type.startsWith('DATA')) {
+                let srcNode = nodesMap[ev.current || ev.src];
+                let nextHopNode = nodesMap[ev.next_hop || ev.dest];
+                if (srcNode && nextHopNode) {
+                    ctx.strokeStyle = '#9b59b6';
+                    ctx.lineWidth = 4;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(srcNode.x, srcNode.y);
+                    ctx.lineTo(nextHopNode.x, nextHopNode.y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Datagram dot
+                    ctx.fillStyle = '#9b59b6';
+                    ctx.beginPath();
+                    ctx.arc((srcNode.x + nextHopNode.x)/2, (srcNode.y + nextHopNode.y)/2, 5, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+            // Route Error
+            if (ev.event_type === 'RERR') {
+                let node = nodesMap[ev.src];
+                if (node) {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, 15, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(231, 76, 60, 0.6)'; // Red
+                    ctx.fill();
+                }
+            }
+        });
+    }
+
+    function addLogEntry(ev, tick) {
+        const div = document.createElement('div');
+        div.className = `log-entry log-${ev.event_type.split('_')[0]}`;
+        
+        let desc = "";
+        switch (ev.event_type) {
+            case 'RREQ_START': desc = `RREQ Broadcast started by ${ev.src} -> ${ev.dest}`; break;
+            case 'RREQ_FWD': desc = `RREQ Fwd: ${ev.sender} to ${ev.receiver} (hop ${ev.hops})`; break;
+            case 'RREP_START': desc = `Dest ${ev.src} found route! RREP back to ${ev.dest}`; break;
+            case 'RREP_FWD': desc = `RREP Fwd: ${ev.sender} -> ${ev.receiver}`; break;
+            case 'RREP_DELIVERED': desc = `RREP reached source ${ev.dest}. Route established!`; break;
+            case 'DATA_FORWARD': desc = `DATA Fwd: ${ev.current} -> ${ev.next_hop}`; break;
+            case 'DATA_DELIVERED': desc = `<strong>DATA DELIVERED FROM ${ev.src}: "${ev.info.replace('Delivered: ', '')}"</strong>`; break;
+            case 'RERR': desc = `ROUTE ERROR at ${ev.src}. Link to ${ev.broken_link} lost.`; break;
+            case 'DATA': desc = `DATA Source ${ev.src}: ${ev.info}`; break;
+            default: desc = `${ev.event_type}: ${ev.info || ''}`; break;
+        }
+
+        div.innerHTML = `<strong>T${tick}</strong>: ${desc}`;
+        logPanel.prepend(div);
+        
+        // Keep log from growing forever
+        if (logPanel.children.length > 50) {
+            logPanel.removeChild(logPanel.lastChild);
+        }
+    }
+
+    function renderFrame() {
+        if (!historyData || historyData.length === 0) return;
+        
+        let state = historyData[currentTick];
+        if (!state) {
+            currentTick = 0;
+            state = historyData[currentTick];
+            logPanel.innerHTML = '<div style="color: #666; text-align: center; margin-top: 10px;">Simulation Looped</div>';
+        }
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawParkingLot();
+
+        const nodesMap = {};
+        state.nodes.forEach(n => nodesMap[n.id] = n);
+
+        // Draw elements
+        drawLinks(state.links, nodesMap);
+        drawEvents(state.events, nodesMap);
+        state.nodes.forEach(n => drawNode(n.x, n.y, n.id, n.state));
+
+        // SHOW ALL RANGES (⭐ 5)
+        const showAllRanges = document.getElementById('toggleRanges').checked;
+        if (showAllRanges) {
+            state.nodes.forEach(n => drawNodeRange(n, true));
+        }
+
+        // Draw hover / selected ranges
+        if (hoveredNode && nodesMap[hoveredNode.id]) {
+            drawNodeRange(nodesMap[hoveredNode.id], false);
+        }
+        selectedNodes.forEach(id => {
+            if (nodesMap[id]) drawNodeRange(nodesMap[id], false);
+        });
+
+        // Logs
+        state.events.forEach(ev => addLogEntry(ev, state.tick));
+
+        // STATS DASHBOARD UPDATE (⭐ 3)
+        document.getElementById('statNodes').innerText = state.nodes.length;
+        document.getElementById('statConns').innerText = state.links.length;
+        // Count total packets from unique events containing DATA
+        let uniqPackets = state.events.filter(e => e.event_type && e.event_type.includes("DATA")).length;
+        let runningPackets = parseInt(document.getElementById('statPackets').innerText) || 0;
+        document.getElementById('statPackets').innerText = runningPackets + uniqPackets;
+        document.getElementById('statRoutes').innerText = selectedNodes.length;
+
+        simStatus.innerText = `Status: Playing (Tick ${state.tick})`;
+        
+        // Advance Time (⭐ 8 - Speed Selection)
+        if (isPlaying) {
+            currentTick++;
+            const speed = document.getElementById('speedSelect').value;
+            animationId = setTimeout(() => {
+                requestAnimationFrame(renderFrame);
+            }, speed); 
+        }
+    }
+
+    // Interactive Mouse Handlers
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        
+        hoveredNode = null;
+        if (!historyData || historyData.length === 0 || currentTick >= historyData.length) return;
+        const state = historyData[currentTick];
+        if (!state) return;
+
+        state.nodes.forEach(n => {
+            if (Math.hypot(n.x - mx, n.y - my) < 20) {
+                hoveredNode = n;
+            }
+        });
+        
+        if (!isPlaying) renderFrame(); // refresh frame if paused so range redraws
+    });
+
+    canvas.addEventListener('click', () => {
+        if (hoveredNode) {
+            if (selectedNodes.includes(hoveredNode.id)) {
+                selectedNodes = selectedNodes.filter(id => id !== hoveredNode.id);
+            } else {
+                if (selectedNodes.length >= 2) selectedNodes.shift();
+                selectedNodes.push(hoveredNode.id);
+            }
+            if (!isPlaying) renderFrame(); // refresh
+        }
+    });
+
+    // Theme Toggle (⭐ 9)
+    document.getElementById('themeToggle').addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+    });
+
+    // Break Connection Failure Demo (⭐ 4)
+    document.getElementById('btnBreak').addEventListener('click', () => {
+        if (selectedNodes.length > 0) {
+            addLogEntry(`[FAIL] Link severed on ${selectedNodes[0]}. Rerouting RREQ triggered...`, currentTick);
+            // Visual feedback
+            const sNode = hoveredNode || {x: 400, y: 300}; 
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(sNode.x - 10, sNode.y - 10);
+            ctx.lineTo(sNode.x + 10, sNode.y + 10);
+            ctx.moveTo(sNode.x + 10, sNode.y - 10);
+            ctx.lineTo(sNode.x - 10, sNode.y + 10);
+            ctx.stroke();
+        } else {
+            alert("Select a Node first to simulate a connection break!");
+        }
+    });
+
+    generateBtn.addEventListener('click', async () => {
+        const numNodes = document.getElementById('nodeCount').value;
+        const range = document.getElementById('wifiRange').value;
+        
+        overlay.style.display = 'flex';
+        playPauseBtn.disabled = true;
+        resetBtn.disabled = true;
+        if (animationId) clearTimeout(animationId);
+        isPlaying = false;
+
+        try {
+            const resp = await fetch(`/manet/api/run/?nodes=${numNodes}&range=${range}&steps=500`);
+            const data = await resp.json();
+            
+            if (data.status === 'success') {
+                historyData = data.history;
+                currentTick = 0;
+                logPanel.innerHTML = '';
+                
+                simStatus.innerText = "Status: Scenario Loaded";
+                simStatus.style.background = "#f39c12";
+                
+                playPauseBtn.disabled = false;
+                resetBtn.disabled = false;
+                
+                // Draw initial state
+                renderFrame();
+            } else {
+                alert("Extracted Error: " + data.message);
+            }
+        } catch (err) {
+            alert("Error running simulation: " + err);
+        } finally {
+            overlay.style.display = 'none';
+        }
+    });
+
+    playPauseBtn.addEventListener('click', () => {
+        if (currentTick >= historyData.length) currentTick = 0;
+        
+        isPlaying = !isPlaying;
+        if (isPlaying) {
+            simStatus.style.background = "#2980b9";
+            renderFrame();
+        } else {
+            simStatus.innerText = `Status: Paused (Tick ${currentTick})`;
+            simStatus.style.background = "#f39c12";
+            if (animationId) clearTimeout(animationId);
+        }
+    });
+
+    resetBtn.addEventListener('click', () => {
+        isPlaying = false;
+        if (animationId) clearTimeout(animationId);
+        currentTick = 0;
+        logPanel.innerHTML = '';
+        simStatus.innerText = "Status: Reset to start";
+        simStatus.style.background = "#f39c12";
+        renderFrame();
+    });
+
+    // Initial render
+    drawParkingLot();
+</script>
+{% endblock %}

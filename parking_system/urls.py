@@ -27,4 +27,5 @@ urlpatterns = [
     path('oauth/', include('allauth.urls')),
     path('bookings/', include('bookings.urls')),
     path('api/', include('api.urls')),
+    path('manet/', include('manet.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

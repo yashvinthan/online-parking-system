@@ -44,11 +44,20 @@ else:
 
 CSRF_TRUSTED_ORIGINS.extend([
     'https://localhost',
+    'http://localhost',
     'https://127.0.0.1',
+    'http://127.0.0.1',
     'https://*.trycloudflare.com',
+    'http://*.trycloudflare.com',
     'https://parking.webistzu.online',
+    'http://parking.webistzu.online',
 ])
 CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(CSRF_TRUSTED_ORIGINS))
+
+# Additional CSRF settings
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False  # CSRF token needs to be in HTML
+CSRF_COOKIE_SAMESITE = 'Lax'  # Allow cross-site POST if from same origin
 
 
 # Application definition
@@ -71,6 +80,7 @@ INSTALLED_APPS = [
     'accounts',
     'bookings',
     'api',
+    'manet',
 ]
 
 MIDDLEWARE = [
