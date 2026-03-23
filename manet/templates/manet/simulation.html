@@ -10,7 +10,7 @@
         color: #f1f3f5;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         margin: 0;
-        overflow: hidden;
+        /* overflow: hidden removed — it was blocking page scroll */
     }
     
     .simulation-container {
@@ -764,5 +764,33 @@
 
     // Initial render
     drawParkingLot();
+
+    // ── Responsive canvas resize ─────────────────────────────────────
+    // Resize canvas to fill its container so the parking scene is
+    // always visible on any screen size (critical for mobile).
+    function resizeCanvas() {
+        const container = canvas.parentElement;
+        const cw = container.clientWidth  || 800;
+        const ch = container.clientHeight || 600;
+        // Only resize if dimensions actually changed to avoid flicker
+        if (canvas.width !== cw || canvas.height !== ch) {
+            canvas.width  = cw;
+            canvas.height = ch;
+            // Redraw parking lot immediately after resize
+            if (historyData && historyData.length > 0) {
+                renderFrame();
+            } else {
+                drawParkingLot();
+            }
+        }
+    }
+
+    // Watch the container for size changes (handles orientation
+    // changes, window resize, mobile layout shifts, etc.)
+    const ro = new ResizeObserver(() => resizeCanvas());
+    ro.observe(canvas.parentElement);
+
+    // Run once immediately after DOM layout settles
+    requestAnimationFrame(resizeCanvas);
 </script>
 {% endblock %}
