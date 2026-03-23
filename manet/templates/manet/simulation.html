@@ -18,14 +18,17 @@
         flex-direction: row;
         gap: 25px;
         padding: 25px;
-        height: 100vh;
+        /* Account for the sticky navbar so nothing overflows */
+        height: calc(100vh - 68px);
         box-sizing: border-box;
-        max-width: 1600px;
+        max-width: 1900px;
         margin: 0 auto;
+        width: 100%;
     }
 
     .simulation-controls {
-        flex: 1;
+        flex: 0 0 340px;   /* fixed-width sidebar */
+        width: 340px;
         min-width: 320px;
         background: rgba(20, 24, 31, 0.65);
         backdrop-filter: blur(16px) saturate(120%);
@@ -34,19 +37,21 @@
         border-radius: 20px;
         display: flex;
         flex-direction: column;
+        overflow-y: auto;
         border: 1px solid rgba(255, 255, 255, 0.04);
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
 
     .canvas-container {
-        flex: 3;
+        flex: 1;           /* take all remaining width */
+        min-width: 0;      /* prevent flex overflow */
         background: #090b0e;
         border-radius: 20px;
         overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.04);
         position: relative;
         display: flex;
-        align-items: center;
+        align-items: stretch;
         justify-content: center;
         box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
     }
@@ -177,7 +182,19 @@
         display: none;
     }
 
-    /* Responsive Scaling for All Screens */
+    /* ── Large screens: 1440p / 1080p ───────────────────────────── */
+    @media (min-width: 1440px) {
+        .simulation-container {
+            padding: 30px;
+            gap: 30px;
+        }
+        .simulation-controls {
+            flex: 0 0 380px;
+            width: 380px;
+        }
+    }
+
+    /* ── Responsive Scaling for tablets / mobile ─────────────────── */
     @media (max-width: 992px) {
         .simulation-container {
             flex-direction: column;
@@ -186,6 +203,7 @@
             padding: 15px;
         }
         .simulation-controls {
+            flex: unset;
             width: 100%;
             min-width: unset;
         }
@@ -196,7 +214,7 @@
         }
         canvas {
             width: 100% !important;
-            height: auto !important;
+            height: 100% !important;
         }
     }
     @media (max-width: 480px) {
@@ -339,16 +357,20 @@
     const playPauseBtn = document.getElementById('playPauseBtn');
     const resetBtn = document.getElementById('resetBtn');
     const overlay = document.getElementById('loadingOverlay');
+    // ── coordinate helpers (all values designed for 800×600 base) ──
+    // Scale factors let the entire parking layout stretch to any canvas size.
     function drawParkingLot() {
         const W = canvas.width, H = canvas.height;
+        const sx = W / 800, sy = H / 600;   // scale factors
 
-        // ── constants matching simulation.py ──────────────────────────────
-        const ENTRY_X     = 740, EXIT_X = 60;
-        const MAIN_LANE_Y = 480;
-        const AISLE_Y     = [405, 305, 205, 105];
-        const SPOT_CY     = [345, 245, 145,  55];
-        const SPOT_COLS   = [160, 270, 380, 490, 600, 710];
-        const SW = 80, SH = 70;
+        // ── scaled constants (match simulation.py layout) ─────────────
+        const ENTRY_X     = 740 * sx, EXIT_X = 60 * sx;
+        const MAIN_LANE_Y = 480 * sy;
+        const AISLE_Y     = [405, 305, 205, 105].map(v => v * sy);
+        const SPOT_CY     = [345, 245, 145,  55].map(v => v * sy);
+        const SPOT_COLS   = [160, 270, 380, 490, 600, 710].map(v => v * sx);
+        const SW = 80 * sx, SH = 70 * sy;
+        const fontSize    = Math.max(10, Math.round(15 * Math.min(sx, sy)));
 
         // ── tarmac
         ctx.fillStyle = '#12121a';
@@ -365,8 +387,9 @@
 
         // ── aisle bands
         ctx.fillStyle = '#1c1c2a';
+        const aisleH = 12 * sy;
         for (let ay of AISLE_Y) {
-            ctx.fillRect(0, ay - 12, W, 24);
+            ctx.fillRect(0, ay - aisleH, W, aisleH * 2);
             ctx.strokeStyle = '#ffffff10';
             ctx.lineWidth = 1;
             ctx.setLineDash([6, 6]);
@@ -383,7 +406,7 @@
         ctx.beginPath(); ctx.moveTo(EXIT_X, 0); ctx.lineTo(EXIT_X, H); ctx.stroke();
         ctx.setLineDash([]);
 
-        // ── parking bays (spots above their aisles: SPOT_CY[r] < AISLE_Y[r])
+        // ── parking bays
         for (let ri = 0; ri < SPOT_CY.length; ri++) {
             for (let ci = 0; ci < SPOT_COLS.length; ci++) {
                 const px = SPOT_COLS[ci] - SW / 2;
@@ -394,35 +417,38 @@
                 ctx.fillRect(px, py, SW, SH);
                 ctx.strokeRect(px, py, SW, SH);
                 ctx.fillStyle = '#40406a';
-                ctx.font = 'bold 15px Arial';
+                ctx.font = `bold ${fontSize}px Arial`;
                 ctx.textAlign = 'center';
-                ctx.fillText('P', SPOT_COLS[ci], SPOT_CY[ri] + 6);
+                ctx.fillText('P', SPOT_COLS[ci], SPOT_CY[ri] + fontSize * 0.4);
             }
         }
 
+        // ── gate sizes
+        const gW = 84 * sx, gH = 52 * sy;
+
         // ── ENTRANCE gate (bottom-right)
         ctx.fillStyle = 'rgba(46,204,113,0.18)';
-        ctx.fillRect(ENTRY_X - 42, H - 52, 84, 52);
+        ctx.fillRect(ENTRY_X - gW/2, H - gH, gW, gH);
         ctx.strokeStyle = '#2ecc71';
         ctx.lineWidth = 1.5;
-        ctx.strokeRect(ENTRY_X - 42, H - 52, 84, 52);
+        ctx.strokeRect(ENTRY_X - gW/2, H - gH, gW, gH);
         ctx.fillStyle = '#2ecc71';
-        ctx.font = 'bold 12px Arial';
+        ctx.font = `bold ${Math.max(9, Math.round(12 * Math.min(sx,sy)))}px Arial`;
         ctx.textAlign = 'center';
-        ctx.fillText('ENTRANCE', ENTRY_X, H - 30);
-        ctx.fillText('▲', ENTRY_X, H - 12);
+        ctx.fillText('ENTRANCE', ENTRY_X, H - gH * 0.55);
+        ctx.fillText('▲', ENTRY_X, H - gH * 0.15);
 
         // ── EXIT gate (bottom-left)
         ctx.fillStyle = 'rgba(231,76,60,0.18)';
-        ctx.fillRect(EXIT_X - 42, H - 52, 84, 52);
+        ctx.fillRect(EXIT_X - gW/2, H - gH, gW, gH);
         ctx.strokeStyle = '#e74c3c';
         ctx.lineWidth = 1.5;
-        ctx.strokeRect(EXIT_X - 42, H - 52, 84, 52);
+        ctx.strokeRect(EXIT_X - gW/2, H - gH, gW, gH);
         ctx.fillStyle = '#e74c3c';
-        ctx.font = 'bold 12px Arial';
+        ctx.font = `bold ${Math.max(9, Math.round(12 * Math.min(sx,sy)))}px Arial`;
         ctx.textAlign = 'center';
-        ctx.fillText('EXIT', EXIT_X, H - 30);
-        ctx.fillText('▼', EXIT_X, H - 12);
+        ctx.fillText('EXIT', EXIT_X, H - gH * 0.55);
+        ctx.fillText('▼', EXIT_X, H - gH * 0.15);
     }
 
     function drawNode(x, y, id, state) {
@@ -478,13 +504,15 @@
     }
 
     function drawNodeRange(n, subtle = false) {
-        const range = document.getElementById('wifiRange').value;
+        const rawRange = parseFloat(document.getElementById('wifiRange').value);
+        // Scale range from 800×600 simulation space to canvas space
+        const scaledRange = rawRange * (canvas.width / 800);
         ctx.fillStyle = subtle ? 'rgba(52, 152, 219, 0.01)' : 'rgba(52, 152, 219, 0.05)';
         ctx.strokeStyle = subtle ? 'rgba(52, 152, 219, 0.1)' : 'rgba(52, 152, 219, 0.3)';
         ctx.lineWidth = 1;
         if (!subtle) ctx.setLineDash([5, 5]);
         ctx.beginPath();
-        ctx.arc(n.x, n.y, parseFloat(range), 0, Math.PI * 2);
+        ctx.arc(n.x, n.y, scaledRange, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
         ctx.setLineDash([]);
@@ -599,13 +627,16 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawParkingLot();
 
+        // Scale node coordinates from 800×600 simulation space → actual canvas
+        const sx = canvas.width / 800, sy = canvas.height / 600;
+        const scaledNodes = state.nodes.map(n => ({ ...n, x: n.x * sx, y: n.y * sy }));
         const nodesMap = {};
-        state.nodes.forEach(n => nodesMap[n.id] = n);
+        scaledNodes.forEach(n => nodesMap[n.id] = n);
 
         // Draw elements
         drawLinks(state.links, nodesMap);
         drawEvents(state.events, nodesMap);
-        state.nodes.forEach(n => drawNode(n.x, n.y, n.id, n.state));
+        scaledNodes.forEach(n => drawNode(n.x, n.y, n.id, n.state));
 
         // SHOW ALL RANGES (⭐ 5)
         const showAllRanges = document.getElementById('toggleRanges').checked;
