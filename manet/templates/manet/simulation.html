@@ -641,7 +641,7 @@
         // SHOW ALL RANGES (⭐ 5)
         const showAllRanges = document.getElementById('toggleRanges').checked;
         if (showAllRanges) {
-            state.nodes.forEach(n => drawNodeRange(n, true));
+            scaledNodes.forEach(n => drawNodeRange(n, true));  // use scaled coords
         }
 
         // Draw hover / selected ranges
